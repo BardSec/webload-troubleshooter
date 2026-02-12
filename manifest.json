@@ -4,8 +4,6 @@
   "version": "1.0.0",
   "description": "Diagnose page load issues caused by content filters, blocked scripts, and failed dependencies.",
   "permissions": [
-    "activeTab",
-    "scripting",
     "webRequest"
   ],
   "host_permissions": [
