@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — WebLoad Troubleshooter</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 720px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      line-height: 1.6;
+      color: #222;
+    }
+    h1 { font-size: 1.6rem; }
+    h2 { font-size: 1.2rem; margin-top: 2rem; }
+    p, li { font-size: 0.95rem; }
+    ul { padding-left: 1.4rem; }
+    .updated { color: #666; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <h1>Privacy Policy</h1>
+  <p class="updated">Last updated: February 12, 2026</p>
+
+  <h2>Overview</h2>
+  <p>
+    WebLoad Troubleshooter is a browser developer-tool extension that helps
+    diagnose page-load issues caused by content filters, blocked scripts, and
+    failed dependencies. Your privacy is important to us, and this policy
+    explains how the extension handles data.
+  </p>
+
+  <h2>Data Collected</h2>
+  <p>
+    The extension observes the following information <strong>only within your
+    browser</strong> for the active tab while the DevTools panel is open:
+  </p>
+  <ul>
+    <li>Network request URLs, status codes, and response headers (e.g. Content-Security-Policy)</li>
+    <li>Failed or blocked network requests and their error reasons</li>
+    <li>Content-Security-Policy violation reports</li>
+    <li>JavaScript errors and unhandled promise rejections</li>
+  </ul>
+
+  <h2>How Data Is Used</h2>
+  <p>
+    All collected data is used solely to display diagnostic information in the
+    extension's DevTools panel. The data is held in memory only for the
+    lifetime of the tab and is automatically cleared when you navigate to a
+    new page or close the tab.
+  </p>
+
+  <h2>Data Sharing and Transmission</h2>
+  <p>
+    WebLoad Troubleshooter does <strong>not</strong>:
+  </p>
+  <ul>
+    <li>Transmit any data to external servers</li>
+    <li>Use analytics or tracking services</li>
+    <li>Store data to disk, local storage, or any persistent medium</li>
+    <li>Share data with third parties</li>
+  </ul>
+
+  <h2>Permissions</h2>
+  <p>The extension requests the following permissions:</p>
+  <ul>
+    <li>
+      <strong>webRequest</strong> and <strong>host_permissions (&lt;all_urls&gt;)</strong> —
+      Required to monitor network requests across all sites so the extension
+      can detect blocked resources and capture relevant response headers.
+    </li>
+  </ul>
+
+  <h2>Changes to This Policy</h2>
+  <p>
+    If this policy is updated, the revised version will be included with the
+    extension and the "Last updated" date above will change.
+  </p>
+
+  <h2>Contact</h2>
+  <p>
+    If you have questions about this privacy policy, please open an issue on
+    the project's GitHub repository.
+  </p>
+</body>
+</html>
