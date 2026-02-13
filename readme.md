@@ -9,7 +9,7 @@ Chrome extension that surfaces page-load problems caused by content filters, blo
 - **Content-Security-Policy violations** — inline scripts, eval, or remote resources blocked by CSP headers (captured via the `securitypolicyviolation` DOM event)
 - **JavaScript runtime errors** — uncaught exceptions and unhandled promise rejections that may result from missing dependencies
 
-##Updates
+## Updates
 v1.1.0: CSV Export Added
 
 ## Installation
