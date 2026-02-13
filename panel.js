@@ -153,6 +153,44 @@ function renderTable() {
   }
 }
 
+// ── CSV Export ─────────────────────────────────────────────────
+
+function exportCSV() {
+  if (!currentData) return;
+  const filter = filterText.toLowerCase();
+  let headers, rows;
+
+  if (currentTab === "failures") {
+    headers = ["Type", "Error", "URL"];
+    rows = currentData.failures.filter((r) => matchFilter(r, filter))
+      .map((r) => [r.type, r.error, r.url]);
+  } else if (currentTab === "csp") {
+    headers = ["Directive", "Blocked URI", "Source"];
+    rows = currentData.cspViolations.filter((r) => matchFilter(r, filter))
+      .map((r) => [r.violatedDirective, r.blockedURI, (r.sourceFile || "") + (r.lineNumber ? ":" + r.lineNumber : "")]);
+  } else if (currentTab === "errors") {
+    headers = ["Error", "Source", "Line"];
+    rows = currentData.jsErrors.filter((r) => matchFilter(r, filter))
+      .map((r) => [r.message, r.source || "", r.line || ""]);
+  } else if (currentTab === "all") {
+    headers = ["Status", "Type", "URL", "CSP"];
+    rows = currentData.requests.filter((r) => matchFilter(r, filter))
+      .map((r) => [r.statusCode, r.type, r.url, r.csp || ""]);
+  }
+
+  const csvContent = [headers, ...rows]
+    .map((row) => row.map((cell) => '"' + String(cell).replace(/"/g, '""') + '"').join(","))
+    .join("\n");
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "webload-" + currentTab + "-" + new Date().toISOString().slice(0, 19).replace(/:/g, "-") + ".csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 // ── Helpers ────────────────────────────────────────────────────
 
 function esc(str) {
@@ -179,6 +217,7 @@ document.querySelectorAll(".tab").forEach((tab) => {
 
 document.getElementById("btn-refresh").addEventListener("click", fetchData);
 document.getElementById("btn-clear").addEventListener("click", clearData);
+document.getElementById("btn-export").addEventListener("click", exportCSV);
 
 document.getElementById("filter-input").addEventListener("input", (e) => {
   filterText = e.target.value;
