@@ -155,40 +155,94 @@ function renderTable() {
 
 // ── CSV Export ─────────────────────────────────────────────────
 
-function exportCSV() {
-  if (!currentData) return;
-  const filter = filterText.toLowerCase();
-  let headers, rows;
+function formatTimestamp(ts) {
+  if (!ts) return "";
+  return new Date(ts).toISOString();
+}
 
-  if (currentTab === "failures") {
-    headers = ["Type", "Error", "URL"];
-    rows = currentData.failures.filter((r) => matchFilter(r, filter))
-      .map((r) => [r.type, r.error, r.url]);
-  } else if (currentTab === "csp") {
-    headers = ["Directive", "Blocked URI", "Source"];
-    rows = currentData.cspViolations.filter((r) => matchFilter(r, filter))
-      .map((r) => [r.violatedDirective, r.blockedURI, (r.sourceFile || "") + (r.lineNumber ? ":" + r.lineNumber : "")]);
-  } else if (currentTab === "errors") {
-    headers = ["Error", "Source", "Line"];
-    rows = currentData.jsErrors.filter((r) => matchFilter(r, filter))
-      .map((r) => [r.message, r.source || "", r.line || ""]);
-  } else if (currentTab === "all") {
-    headers = ["Status", "Type", "URL", "CSP"];
-    rows = currentData.requests.filter((r) => matchFilter(r, filter))
-      .map((r) => [r.statusCode, r.type, r.url, r.csp || ""]);
+function getTabRows(tabName, data, filter) {
+  if (tabName === "failures") {
+    return {
+      headers: ["Timestamp", "Type", "Error", "URL"],
+      rows: data.failures.filter((r) => matchFilter(r, filter))
+        .map((r) => [formatTimestamp(r.timestamp), r.type, r.error, r.url]),
+    };
+  } else if (tabName === "csp") {
+    return {
+      headers: ["Timestamp", "Directive", "Blocked URI", "Source", "Line", "Column"],
+      rows: data.cspViolations.filter((r) => matchFilter(r, filter))
+        .map((r) => [formatTimestamp(r.timestamp), r.violatedDirective, r.blockedURI, r.sourceFile || "", r.lineNumber || "", r.columnNumber || ""]),
+    };
+  } else if (tabName === "errors") {
+    return {
+      headers: ["Timestamp", "Error", "Source", "Line", "Column"],
+      rows: data.jsErrors.filter((r) => matchFilter(r, filter))
+        .map((r) => [formatTimestamp(r.timestamp), r.message, r.source || "", r.line || "", r.col || ""]),
+    };
+  } else if (tabName === "all") {
+    return {
+      headers: ["Timestamp", "Status", "Type", "URL", "From Cache", "IP", "CSP"],
+      rows: data.requests.filter((r) => matchFilter(r, filter))
+        .map((r) => [formatTimestamp(r.timestamp), r.statusCode, r.type, r.url, r.fromCache ? "Yes" : "No", r.ip || "", r.csp || ""]),
+    };
   }
+  return { headers: [], rows: [] };
+}
 
-  const csvContent = [headers, ...rows]
+function buildCSV(headers, rows) {
+  return [headers, ...rows]
     .map((row) => row.map((cell) => '"' + String(cell).replace(/"/g, '""') + '"').join(","))
     .join("\n");
+}
 
+function downloadCSV(csvContent, filename) {
   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "webload-" + currentTab + "-" + new Date().toISOString().slice(0, 19).replace(/:/g, "-") + ".csv";
+  a.download = filename;
+  document.body.appendChild(a);
   a.click();
+  document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+
+function exportCSV() {
+  if (!currentData) return;
+  const filter = filterText.toLowerCase();
+  const { headers, rows } = getTabRows(currentTab, currentData, filter);
+  if (rows.length === 0) return;
+
+  const csvContent = buildCSV(headers, rows);
+  const ts = new Date().toISOString().slice(0, 19).replace(/:/g, "-");
+  downloadCSV(csvContent, `webload-${currentTab}-${ts}.csv`);
+}
+
+function exportAllCSV() {
+  if (!currentData) return;
+  const filter = filterText.toLowerCase();
+  const sections = [
+    { name: "Blocked/Failed Requests", tab: "failures" },
+    { name: "CSP Violations", tab: "csp" },
+    { name: "JS Errors", tab: "errors" },
+    { name: "All Requests", tab: "all" },
+  ];
+
+  let allLines = [];
+  for (const section of sections) {
+    const { headers, rows } = getTabRows(section.tab, currentData, filter);
+    if (rows.length === 0) continue;
+    allLines.push(`"--- ${section.name} (${rows.length}) ---"`);
+    allLines.push(headers.map((h) => '"' + h + '"').join(","));
+    for (const row of rows) {
+      allLines.push(row.map((cell) => '"' + String(cell).replace(/"/g, '""') + '"').join(","));
+    }
+    allLines.push("");
+  }
+
+  if (allLines.length === 0) return;
+  const ts = new Date().toISOString().slice(0, 19).replace(/:/g, "-");
+  downloadCSV(allLines.join("\n"), `webload-all-${ts}.csv`);
 }
 
 // ── Helpers ────────────────────────────────────────────────────
@@ -218,6 +272,7 @@ document.querySelectorAll(".tab").forEach((tab) => {
 document.getElementById("btn-refresh").addEventListener("click", fetchData);
 document.getElementById("btn-clear").addEventListener("click", clearData);
 document.getElementById("btn-export").addEventListener("click", exportCSV);
+document.getElementById("btn-export-all").addEventListener("click", exportAllCSV);
 
 document.getElementById("filter-input").addEventListener("input", (e) => {
   filterText = e.target.value;
